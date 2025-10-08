@@ -74,11 +74,11 @@
 
 | Компонент | Назначение |
 |------------|-------------|
-| **API Gateway** | Центральная точка входа для всех клиентских запросов. Выполняет маршрутизацию, валидацию данных и аутентификацию через `User Service`. |
-| **User Service** | Управляет пользователями: регистрация, авторизация (JWT), хранение ролей и профилей. |
+| **API Gateway** | Центральная точка входа для всех клиентских запросов. Выполняет маршрутизацию, валидацию данных. |
 | **Course Service** | Отвечает за хранение и выдачу учебных курсов, теоретических материалов и пула алгоритмических задач. |
 | **Judge Service** | Принимает решения пользователей на проверку, выполняет их в изолированной среде, анализирует результаты (успех, ошибка, превышение лимита) и возвращает отчёт. |
-| **PostgreSQL** | Центральная система управления данными. Для изоляции данных каждая служба использует собственную схему (`user_db`, `course_db`, `judge_db`). |
+| **course_db** | БД, которая хранит непосредственно теоретическую часть всех модулей и задачи |
+| **judge_db** | БД, которая хранит информацию по отправленным решениям. |
 
 ```mermaid
 graph TD
@@ -91,28 +91,21 @@ graph TD
   end
   
   subgraph Services
-    UserService[User Service]
     CourseService[Course Service]
     JudgeService[Judge Service]
   end
   
   subgraph Databases
-    UserDB[(user_db)]
     CourseDB[(course_db)]
     JudgeDB[(judge_db)]
   end
 
   UserApp-->|REST/HTTP|APIGateway
-  APIGateway-->|gRPC/HTTP|UserService
   APIGateway-->|gRPC/HTTP|CourseService
   APIGateway-->|gRPC/HTTP|JudgeService
   
-  UserService-->|SQL|UserDB
   CourseService-->|SQL|CourseDB
   JudgeService-->|SQL|JudgeDB
-  
-  CourseService-->|gRPC|JudgeService
-  JudgeService-->|gRPC|CourseService
 ```
 
 ## 7. Технические сценарии
