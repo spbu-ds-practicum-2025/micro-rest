@@ -1,2 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+
+# Env/секреты
+.env
+*.env
+
+# Логи/артефакты
+*.log
+dist/
+build/
+
+# IDE/OS
 .vscode/
 .idea/
+.DS_Store
+
+# На всякий (если вдруг смонтируешь локальную папку с БД)
+services/course_service/pgdata/
