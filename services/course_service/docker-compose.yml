@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   course_db:
@@ -9,8 +8,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - course_db_data:/var/lib/postgresql/course_db_data
-    ports:
-      - "5433:5432"
+    # ports:
+    #   - "5433:5432"
     networks: [appnet]
 
 
@@ -19,8 +18,8 @@ services:
     depends_on: [course_db]
     environment:
       ADMINER_DEFAULT_SERVER: course_db
-    ports:
-      - "8081:8080"
+    # ports:
+    #   - "8081:8080"
     networks: [appnet]
 
   course_service:
@@ -30,9 +29,11 @@ services:
       DATABSE_SYNC_URL: ${DATABASE_SYNC_URL:-postgresql://postgres:postgres@course_db:5432/course}
       APP_PORT: ${APP_PORT:-8000}
     depends_on: [course_db]
-    ports:
-      - "8000:8000"
-    networks: [appnet]
+    expose:
+      - "8000"
+    networks:
+      - appnet
+      - edge
 
 volumes:
   course_db_data:
@@ -40,3 +41,5 @@ volumes:
 networks:
   appnet:
     driver: bridge
+  edge:
+    external: true
