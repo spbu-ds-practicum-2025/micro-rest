@@ -1,12 +1,18 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class TaskBase(BaseModel):
+
+class TaskCreate(BaseModel):
+    title: str
     module_id: int
-    question: str
+    status: Optional[str] = "todo"
 
-class TaskCreate(TaskBase):
-    pass
 
-class TaskOut(TaskBase):
+class TaskOut(BaseModel):
     id: int
+    title: str
+    module_id: int
+    status: str
 
+class Config:
+    from_attributes = True

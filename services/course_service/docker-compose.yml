@@ -7,9 +7,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - course_db_data:/var/lib/postgresql/course_db_data
-    # ports:
-    #   - "5433:5432"
+      - course_db_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5433:5432"
     networks: [appnet]
 
 
@@ -25,15 +26,17 @@ services:
   course_service:
     build: .
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@course_db:5432/course}
-      DATABSE_SYNC_URL: ${DATABASE_SYNC_URL:-postgresql://postgres:postgres@course_db:5432/course}
+      # DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@course_db:5432/course}
+      DATABASE_SYNC_URL: ${DATABASE_SYNC_URL:-postgresql+psycopg://postgres:postgres@course_db:5432/course}
       APP_PORT: ${APP_PORT:-8000}
     depends_on: [course_db]
     expose:
       - "8000"
     networks:
-      - appnet
-      - edge
+      appnet: {}
+      edge:
+        aliases:
+          - course-api
 
 volumes:
   course_db_data:

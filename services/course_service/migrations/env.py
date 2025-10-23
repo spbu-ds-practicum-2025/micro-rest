@@ -12,8 +12,8 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 def _get_sync_url() -> str:
-    url = os.getenv("DATABASE_SYNC_URL") or os.getenv("DATABASE_URL", "")
-    return url.replace("+asyncpg", "")
+    url = os.getenv("DATABASE_SYNC_URL")
+    return url
 
 def run_migrations_offline() -> None:
     url = _get_sync_url()

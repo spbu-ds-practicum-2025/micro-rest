@@ -1,11 +1,15 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String
+from sqlalchemy import Column, Integer, String, Text
 from app.db.base_class import Base
+
+
+
 
 class Module(Base):
     __tablename__ = "modules"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    tasks: Mapped[list["Task"]] = relationship(back_populates="module")
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    source_url = Column(Text, nullable=True)
     

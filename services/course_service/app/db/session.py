@@ -1,9 +1,16 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from app.core.config import settings
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-engine = create_async_engine(settings.database_url, pool_pre_ping=True)
-AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+DATABASE_SYNC_URL = os.getenv(
+"DATABASE_SYNC_URL",
+"postgresql+psycopg://postgres:postgres@course_db:5432/course",
+)
+
+
+engine = create_engine(
+DATABASE_SYNC_URL,
+pool_pre_ping=True,
+)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)

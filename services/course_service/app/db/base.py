@@ -1,3 +1,6 @@
-from app.db.base_class import Base      
-from app.models.module import Module    #noqa: F401
-from app.models.task import Task        #noqa: F401
+from .base_class import Base # noqa
+
+
+# Импорт моделей — важно для create_all
+from app.models.module import Module # noqa
+from app.models.task import Task # noqa
