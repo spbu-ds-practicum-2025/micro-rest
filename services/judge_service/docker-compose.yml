@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  judge:
+    build: ./judge
+    container_name: judge_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./judge/app:/app
+      - ./test_solutions:/test_solutions
+    environment:
+      - DATABASE_URL=postgresql://judge_user:judge_password@judge_db:5432/judge_db
+      - MAX_EXECUTION_TIME=5
+      - MAX_MEMORY_LIMIT=128
+    depends_on:
+      - judge_db
+    networks:
+      - judge_network
+
+  judge_db:
+    image: postgres:13
+    container_name: judge_db
+    environment:
+      - POSTGRES_DB=judge_db
+      - POSTGRES_USER=judge_user
+      - POSTGRES_PASSWORD=judge_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./judge_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - judge_network
+
+volumes:
+  postgres_data:
+
+networks:
+  judge_network:
+    driver: bridge
