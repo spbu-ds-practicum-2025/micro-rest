@@ -1,21 +1,16 @@
-from pydantic import BaseModel, HttpUrl
-from typing import Optional
-
-
-class ModuleCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    source_url: Optional[HttpUrl | str] = None
-
-
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ModuleOut(BaseModel):
-    id: int
-    title: str
-    description: Optional[str] = None
-    source_url: Optional[str] = None
+    """
+    Схема модуля, соответствующая components.schemas.Module из course.api.
+    id, title, description, order, isRead.
+    """
+    id: int = Field(..., description="Идентификатор модуля (из БД)")
+    title: str = Field(..., description="Название модуля")
+    description: str = Field(..., description="Краткое описание содержимого модуля")
+    order: int = Field(..., description="Порядковый номер модуля в курсе")
+    isRead: bool = Field(..., description="Признак того, что модуль прочитан пользователем")
+    content: str = Field(..., description="content itself", max_length=1000)
 
-
-class Config:
-    from_attributes = True # pydantic v2
+    model_config = ConfigDict(from_attributes=True)

@@ -1,0 +1,440 @@
+openapi: 3.0.3
+info:
+  title: Learning Platform API
+  description: API для работы с учебными модулями, задачами и посылками через API Gateway (NGINX).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local API Gateway (NGINX)
+
+paths:
+  /modules:
+    get:
+      tags:
+        - Modules
+      summary: Получить список модулей
+      description: Возвращает все доступные учебные модули.
+      operationId: listModules
+      responses:
+        '200':
+          description: Успешный ответ со списком модулей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /modules/{module_id}:
+    get:
+      tags:
+        - Modules
+      summary: Получить модуль
+      description: Возвращает информацию о конкретном модуле.
+      operationId: getModule
+      parameters:
+        - name: module_id
+          in: path
+          required: true
+          description: Идентификатор модуля
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Модуль найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '404':
+          description: Модуль не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Modules
+      summary: Отметить модуль как прочитанный
+      description: Помечает модуль как прочитанный текущим пользователем.
+      operationId: markModuleRead
+      parameters:
+        - name: module_id
+          in: path
+          required: true
+          description: Идентификатор модуля
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '204':
+          description: Статус прочитанности модуля успешно обновлён
+        '404':
+          description: Модуль не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Получить список задач
+      description: Возвращает список задач для выполнения.
+      operationId: listTasks
+      responses:
+        '200':
+          description: Успешный ответ со списком задач
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks/{task_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Получить задачу
+      description: Возвращает подробную информацию о задаче.
+      operationId: getTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Задача найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks/{task_id}/submissions:
+    get:
+      tags:
+        - Submissions
+      summary: Получить список посылок по задаче
+      description: Возвращает все посылки пользователя по указанной задаче.
+      operationId: listSubmissionsByTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ со списком посылок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Submissions
+      summary: Отправить код на проверку
+      description: Создаёт новую посылку с решением задачи.
+      operationId: createSubmission
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreateRequest'
+      responses:
+        '201':
+          description: Посылка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /submissions/{submission_id}:
+    get:
+      tags:
+        - Submissions
+      summary: Получить посылку
+      description: Возвращает информацию о конкретной посылке.
+      operationId: getSubmission
+      parameters:
+        - name: submission_id
+          in: path
+          required: true
+          description: Идентификатор посылки
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Посылка найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '404':
+          description: Посылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    IdempotencyKey:
+      name: X-Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор запроса для обеспечения идемпотентности
+
+  schemas:
+    Module:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - order
+        - isRead
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор модуля
+        title:
+          type: string
+          description: Название модуля
+        description:
+          type: string
+          description: Краткое описание содержимого модуля
+        order:
+          type: integer
+          format: int32
+          description: Порядковый номер модуля в курсе
+        isRead:
+          type: boolean
+          description: Признак того, что модуль прочитан пользователем
+      example:
+        id: "550e8400-e29b-41d4-a716-446655440000"
+        title: "Введение в Python"
+        description: "Базовые конструкции языка и настройка окружения."
+        order: 1
+        isRead: false
+
+    Task:
+      type: object
+      required:
+        - id
+        - moduleId
+        - title
+        - description
+        - maxScore
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор задачи
+        moduleId:
+          type: string
+          format: uuid
+          description: Идентификатор модуля, к которому относится задача
+        title:
+          type: string
+          description: Краткое название задачи
+        description:
+          type: string
+          description: Полное условие задачи
+        maxScore:
+          type: integer
+          format: int32
+          description: Максимальное количество баллов за задачу
+      example:
+        id: "5a3c8d16-2b70-4b5a-9c20-3a0f4ad9a001"
+        moduleId: "550e8400-e29b-41d4-a716-446655440000"
+        title: "Сумма чисел"
+        description: "Прочитайте два числа из stdin и выведите их сумму."
+        maxScore: 100
+
+    Submission:
+      type: object
+      required:
+        - id
+        - taskId
+        - status
+        - createdAt
+        - language
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор посылки
+        taskId:
+          type: string
+          format: uuid
+          description: Идентификатор задачи, к которой относится посылка
+        status:
+          type: string
+          description: Текущий статус проверки посылки
+          enum:
+            - QUEUED
+            - RUNNING
+            - PASSED
+            - FAILED
+        score:
+          type: integer
+          format: int32
+          nullable: true
+          description: Полученное количество баллов (если проверка завершена)
+        language:
+          type: string
+          description: Язык программирования решения
+        createdAt:
+          type: string
+          format: date-time
+          description: Время создания посылки
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Время последнего обновления посылки
+      example:
+        id: "bf0c2ad4-98b8-4a52-b4f0-2a26e93a5f10"
+        taskId: "5a3c8d16-2b70-4b5a-9c20-3a0f4ad9a001"
+        status: "QUEUED"
+        score: null
+        language: "python"
+        createdAt: "2024-01-01T12:00:00Z"
+        updatedAt: null
+
+    SubmissionCreateRequest:
+      type: object
+      required:
+        - code
+        - language
+      properties:
+        code:
+          type: string
+          description: Исходный код решения
+        language:
+          type: string
+          description: Язык программирования решения (например, python, cpp, java)
+      example:
+        code: "a, b = map(int, input().split()); print(a + b)"
+        language: "python"
+
+    ErrorResponse:
+      type: object
+      required:
+        - errorId
+        - message
+      properties:
+        errorId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор ошибки для трассировки
+        code:
+          type: string
+          description: Машиночитаемый код ошибки
+        message:
+          type: string
+          description: Краткое человекочитаемое описание ошибки
+        details:
+          type: object
+          description: Дополнительные сведения об ошибке
+          additionalProperties: true
+      example:
+        errorId: "f4d0f3d0-7e0c-4e5f-a987-7e07ae04fabc"
+        code: "RESOURCE_NOT_FOUND"
+        message: "Ресурс не найден"
+        details: {}
