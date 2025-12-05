@@ -11,6 +11,6 @@ class ModuleOut(BaseModel):
     description: str = Field(..., description="Краткое описание содержимого модуля")
     order: int = Field(..., description="Порядковый номер модуля в курсе")
     isRead: bool = Field(..., description="Признак того, что модуль прочитан пользователем")
-    content: str = Field(..., description="content itself", max_length=1000)
+    content: str = Field(..., description="content itself")
 
     model_config = ConfigDict(from_attributes=True)

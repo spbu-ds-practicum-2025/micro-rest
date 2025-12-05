@@ -67,7 +67,7 @@ def module_to_schema(m: Module) -> ModuleOut:
     return ModuleOut(
         id=m.id,
         title=m.title,
-        description=m.content,
+        description=_short_description(m.content),
         order=m.order_index,
         # В схемe БД нет информации о прочитанности модулей пользователем,
         # поэтому пока всегда false.
@@ -126,7 +126,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error.model_dump(),
+        content=error.model_dump(mode="json"),
     )
 
 
@@ -140,7 +140,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error.model_dump(),
+        content=error.model_dump(mode="json"),
     )
 
 

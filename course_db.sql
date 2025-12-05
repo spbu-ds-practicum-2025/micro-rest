@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- \restrict pXHLXzHA3NqRCNElmjlQeZx3jEl22M7xH2LOdcjFkOxfwkXKvHlJPXxbwmzfrQP
+\restrict pXHLXzHA3NqRCNElmjlQeZx3jEl22M7xH2LOdcjFkOxfwkXKvHlJPXxbwmzfrQP
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -382,5 +382,5 @@ ALTER TABLE ONLY public.test_cases
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict pXHLXzHA3NqRCNElmjlQeZx3jEl22M7xH2LOdcjFkOxfwkXKvHlJPXxbwmzfrQP
+\unrestrict pXHLXzHA3NqRCNElmjlQeZx3jEl22M7xH2LOdcjFkOxfwkXKvHlJPXxbwmzfrQP
 

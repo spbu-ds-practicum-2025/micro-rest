@@ -3,6 +3,7 @@ set -e
 
 sleep 2
 
-alembic upgrade head || true
+# Надо будет подогнать миграции под скрипт Артема чтобы они заработали
+# alembic upgrade head || true
 
 exec uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}
