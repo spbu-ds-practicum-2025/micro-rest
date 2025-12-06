@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: online-course
+data:
+  nginx.conf: |
+    events {}
+
+    http {
+        upstream course_service {
+            server course-api:8000;
+        }
+
+        upstream judge_service {
+            server judge:8000;
+        }
+
+        server {
+            listen 80;
+
+            location ~ ^/modules\d* {
+                proxy_pass http://course_service;
+            }
+
+            location ~ ^/tasks\d* {
+                proxy_pass http://course_service;
+            }
+
+            location ~ ^/submissions\d* {
+                proxy_pass http://judge_service;
+            }
+
+            location /healthz {
+                proxy_pass http://course_service;
+            }
+        }
+    }
