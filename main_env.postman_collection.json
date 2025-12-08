@@ -1,0 +1,642 @@
+{
+	"info": {
+		"_postman_id": "4450fb89-f329-4a7a-bf58-b9b6f55d92c2",
+		"name": "main_env",
+		"description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50657751",
+		"_collection_link": "https://crimson-desert-9588810.postman.co/workspace/Simka's-Workspace~2537d4a7-5110-4d48-8b9d-92b3536d1daa/collection/50657751-4450fb89-f329-4a7a-bf58-b9b6f55d92c2?action=share&source=collection_link&creator=50657751"
+	},
+	"item": [
+		{
+			"name": "tasks",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200\", () => {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Возвращён массив задач\", () => {",
+							"  const body = pm.response.json();",
+							"  pm.expect(body).to.be.an(\"array\");",
+							"});",
+							"",
+							"pm.test(\"Каждая задача имеет обязательные поля\", () => {",
+							"  const tasks = pm.response.json();",
+							"  tasks.forEach(t => {",
+							"    pm.expect(t).to.have.property(\"id\");",
+							"    pm.expect(t).to.have.property(\"moduleId\");",
+							"    pm.expect(t).to.have.property(\"title\");",
+							"    pm.expect(t).to.have.property(\"description\");",
+							"    pm.expect(t).to.have.property(\"maxScore\");",
+							"  });",
+							"});",
+							"",
+							"pm.test(\"Время ответа < 500мс\", () => {",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);",
+							"});",
+							"",
+							"// Сохраняем id первой задачи для дальнейших шагов",
+							"const tasks = pm.response.json();",
+							"if (tasks.length > 0) {",
+							"  pm.environment.set(\"taskId\", tasks[0].id);",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"tasks"
+					]
+				},
+				"description": "This is a GET request and it is used to \"get\" data from an endpoint. There is no request body for a GET request, but you can use query parameters to help specify the resource you want data on (e.g., in this request, we have `id=1`).\n\nA successful GET response will have a `200 OK` status, and should include some kind of response body - for example, HTML web content or JSON data."
+			},
+			"response": []
+		},
+		{
+			"name": "get idempotencyKey",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function uuidv4() {\r",
+							"  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\r",
+							"    const r = Math.random() * 16 | 0;\r",
+							"    const v = c === 'x' ? r : (r & 0x3 | 0x8);\r",
+							"    return v.toString(16);\r",
+							"  });\r",
+							"}\r",
+							"\r",
+							"pm.environment.set(\"idempotencyKey\", uuidv4());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Idempotency-Key",
+						"value": "{{idempotencyKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "/tasks/{{taskId}}/submissions",
+					"path": [
+						"tasks",
+						"{{taskId}}",
+						"submissions"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "tasks/tasksId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Задача соответствует схеме\", () => {\r",
+							"  const t = pm.response.json();\r",
+							"  pm.expect(t).to.have.property(\"id\", pm.environment.get(\"taskId\"));\r",
+							"  pm.expect(t).to.have.property(\"moduleId\");\r",
+							"  pm.expect(t).to.have.property(\"title\");\r",
+							"  pm.expect(t).to.have.property(\"description\");\r",
+							"  pm.expect(t).to.have.property(\"maxScore\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Время ответа < 500мс\", () => {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/tasks/{{taskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"tasks",
+						"{{taskId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "tasks//submissions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 201\", () => {\r",
+							"  pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Вернулась посылка с нужными полями\", () => {\r",
+							"  const s = pm.response.json();\r",
+							"  pm.expect(s).to.have.property(\"id\");\r",
+							"  pm.expect(s).to.have.property(\"taskId\", pm.environment.get(\"taskId\"));\r",
+							"  pm.expect(s).to.have.property(\"status\");\r",
+							"  pm.expect([\"QUEUED\", \"RUNNING\", \"PASSED\", \"FAILED\"]).to.include(s.status);\r",
+							"  pm.expect(s).to.have.property(\"language\", \"python\");\r",
+							"  pm.expect(s).to.have.property(\"createdAt\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"createdAt корректен по типу\", () => {\r",
+							"  const s = pm.response.json();\r",
+							"  const date = new Date(s.createdAt);\r",
+							"  pm.expect(isNaN(date.getTime())).to.be.false;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Время ответа < 500мс\", () => {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							"// Сохраняем submissionId для следующих шагов\r",
+							"const s = pm.response.json();\r",
+							"pm.environment.set(\"submissionId\", s.id);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Idempotency-Key",
+						"value": "{{idempotencyKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"code\": \"a, b = map(int, input().split()); print(a + b)\",\r\n  \"language\": \"python\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/tasks/{{taskId}}/submissions",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"tasks",
+						"{{taskId}}",
+						"submissions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "submissions/submissionId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const s = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Статус 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Посылка соответствует схеме\", () => {\r",
+							"  pm.expect(s).to.have.property(\"id\", pm.environment.get(\"submissionId\"));\r",
+							"  pm.expect(s).to.have.property(\"taskId\", pm.environment.get(\"taskId\"));\r",
+							"  pm.expect(s).to.have.property(\"status\");\r",
+							"  pm.expect([\"QUEUED\", \"RUNNING\", \"PASSED\", \"FAILED\"]).to.include(s.status);\r",
+							"  pm.expect(s).to.have.property(\"language\");\r",
+							"  pm.expect(s).to.have.property(\"createdAt\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Время ответа < 500мс\", () => {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							"// Если проверка ещё идёт – повторяем тот же запрос\r",
+							"if ([\"QUEUED\", \"RUNNING\"].includes(s.status)) {\r",
+							"  postman.setNextRequest(\"GET Submission by id\"); // имя этого же запроса в коллекции\r",
+							"} else {\r",
+							"  // Проверяем финальное состояние\r",
+							"  pm.test(\"Для завершённой проверки заполнен score и updatedAt\", () => {\r",
+							"    pm.expect([\"PASSED\", \"FAILED\"]).to.include(s.status);\r",
+							"    pm.expect(s.updatedAt).to.exist;\r",
+							"    const created = new Date(s.createdAt);\r",
+							"    const updated = new Date(s.updatedAt);\r",
+							"    pm.expect(updated.getTime()).to.be.greaterThanOrEqual(created.getTime());\r",
+							"    if (s.status === \"PASSED\") {\r",
+							"      pm.expect(s.score).to.be.a(\"number\");\r",
+							"    }\r",
+							"  });\r",
+							"  postman.setNextRequest(null); // останавливаем цепочку\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/submissions/{{submissionId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"submissions",
+						"{{submissionId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modules",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const modules = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Возвращён массив модулей\", () => {\r",
+							"  pm.expect(modules).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Каждый модуль имеет обязательные поля\", () => {\r",
+							"  modules.forEach(m => {\r",
+							"    pm.expect(m).to.have.property(\"id\");\r",
+							"    pm.expect(m).to.have.property(\"title\");\r",
+							"    pm.expect(m).to.have.property(\"description\");\r",
+							"    pm.expect(m).to.have.property(\"order\");\r",
+							"    pm.expect(m).to.have.property(\"isRead\");\r",
+							"\r",
+							"    pm.expect(m.order).to.be.a(\"number\");\r",
+							"    pm.expect(typeof m.isRead).to.equal(\"boolean\");\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Время ответа < 500мс\", () => {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							"// Сохраняем moduleId для следующих запросов\r",
+							"pm.test(\"Сохраняем id первого модуля в окружение\", () => {\r",
+							"  pm.expect(modules.length).to.be.above(0);\r",
+							"  pm.environment.set(\"moduleId\", modules[0].id);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/modules",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"modules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modules/moduleId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const module = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Модуль соответствует схеме\", () => {\r",
+							"  pm.expect(module).to.have.property(\"id\", pm.environment.get(\"moduleId\"));\r",
+							"  pm.expect(module).to.have.property(\"title\");\r",
+							"  pm.expect(module).to.have.property(\"description\");\r",
+							"  pm.expect(module).to.have.property(\"order\");\r",
+							"  pm.expect(module).to.have.property(\"isRead\");\r",
+							"\r",
+							"  pm.expect(module.order).to.be.a(\"number\");\r",
+							"  pm.expect(typeof module.isRead).to.equal(\"boolean\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Модуль помечен как прочитанный\", () => {\r",
+							"  const module = pm.response.json();\r",
+							"  pm.expect(module.isRead).to.be.true;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Время ответа < 500мс\", () => {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/modules/{{moduleId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"modules",
+						"{{moduleId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modules/moduleId",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function uuidv4() {\r",
+							"  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\r",
+							"    const r = Math.random() * 16 | 0;\r",
+							"    const v = c === 'x' ? r : (r & 0x3 | 0x8);\r",
+							"    return v.toString(16);\r",
+							"  });\r",
+							"}\r",
+							"\r",
+							"pm.environment.set(\"idempotencyKey\", uuidv4());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 204\", () => {\r",
+							"  pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"// 204 обычно без тела\r",
+							"pm.test(\"Тело пустое\", () => {\r",
+							"  const text = pm.response.text();\r",
+							"  pm.expect(text === \"\" || text.trim() === \"\").to.be.true;\r",
+							"});\r",
+							"\r",
+							"// После успешной пометки хотим сразу проверить, что isRead = true\r",
+							"// Переходим к запросу \"GET Module by id\" (название подставь своё)\r",
+							"postman.setNextRequest(\"GET modules/moduleId\");\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Idempotency-Key",
+						"value": "{{idempotencyKey}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/modules/{{moduleId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"modules",
+						"{{moduleId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "no_valid_module",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Невалидный module_id → 404\", () => {\r",
+							"  pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Тело ошибки соответствует ErrorResponse\", () => {\r",
+							"  const err = pm.response.json();\r",
+							"  pm.expect(err).to.have.property(\"errorId\");\r",
+							"  pm.expect(err).to.have.property(\"code\");\r",
+							"  pm.expect(err).to.have.property(\"message\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/modules/00000000-0000-0000-0000-000000000000",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"modules",
+						"00000000-0000-0000-0000-000000000000"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "no_valid_module",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function uuidv4() {\r",
+							"  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\r",
+							"    const r = Math.random() * 16 | 0;\r",
+							"    const v = c === 'x' ? r : (r & 0x3 | 0x8);\r",
+							"    return v.toString(16);\r",
+							"  });\r",
+							"}\r",
+							"\r",
+							"pm.environment.set(\"idempotencyKey\", uuidv4());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"POST к несуществующему модулю → 404\", () => {\r",
+							"  pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ошибка в формате ErrorResponse\", () => {\r",
+							"  const err = pm.response.json();\r",
+							"  pm.expect(err).to.have.property(\"errorId\");\r",
+							"  pm.expect(err).to.have.property(\"code\");\r",
+							"  pm.expect(err).to.have.property(\"message\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Idempotency-Key",
+						"value": "{{idempotencyKey}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/modules/00000000-0000-0000-0000-000000000000",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"modules",
+						"00000000-0000-0000-0000-000000000000"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
