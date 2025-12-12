@@ -76,7 +76,6 @@
 | **Course Service** | Отвечает за хранение и выдачу учебных курсов, теоретических материалов и задач. |
 | **Judge Service** | Принимает решения пользователей на проверку, выполняет их в изолированной среде, анализирует результаты (успех, ошибка, превышение лимита) и возвращает отчёт. |
 | **course_db** | БД, которая хранит непосредственно теоретическую часть всех модулей, задачи и тесты к ним |
-<!-- | **judge_db** | БД, которая хранит информацию по отправленным решениям. | -->
 
 ```mermaid
 graph TD
@@ -95,7 +94,6 @@ graph TD
   
   subgraph Databases
     CourseDB[(course_db)]
-    JudgeDB[(judge_db)]
   end
 
   UserApp-->|REST/HTTP|APIGateway
@@ -103,7 +101,7 @@ graph TD
   APIGateway-->|gRPC/HTTP|JudgeService
   
   CourseService-->|SQL|CourseDB
-  JudgeService-->|SQL|JudgeDB
+  JudgeService-->|SQL|CourseDB
 ```
 
 ## 7. Технические сценарии
@@ -129,16 +127,13 @@ APIGateway->>CourseService: Запрос данных модуля
 CourseService->>CourseDB: Получить описание модуля и тестовые вопросы
 CourseDB-->>CourseService: Данные модуля
 CourseService-->>APIGateway: Ответ с теоретическим материалом и тестовыми вопросами
-APIGateway-->>Client: Отображение теории и тестовых вопросов
-Client->>APIGateway: POST /modules/{id}/complete
-APIGateway->>CourseService: Отметить модуль как завершённый
-CourseService->>CourseDB: Сохранить прогресс
+APIGateway-->>Client: Отображение теории
 ```
 
 ### Сценарий: решение задачи
 
 1. Пользователь в клиентском приложении выбирает раздел «Алгоритмические задачи» или задачи, привязанные к определенному теоретическому модулю.  
-2. Клиент отправляет запрос GET `/tasks/free`, если хочет решить алгоритмическую задачу или `/tasks/<madule_name>` через `API Gateway`.  
+2. Клиент отправляет запрос GET `/tasks/free`, если хочет решить алгоритмическую задачу или `/tasks/<madule_id>` через `API Gateway`.  
 3. `API Gateway` перенаправляет запрос в `Course Service`.  
 4. `Course Service`  получает список задач, где `is_free = true`, если выбирает алгоритмическую задачу, либо
 список задач привязанных к определенному теоретическому модулю.  
@@ -158,7 +153,6 @@ participant APIGateway
 participant CourseService
 participant JudgeService
 participant CourseDB as course_db
-participant JudgeDB as judge_db
 
 Client->>APIGateway: GET /tasks/free
 Client->>APIGateway: GET /tasks/{module}
@@ -171,8 +165,6 @@ APIGateway-->>Client: Отображение задач
 
 Client->>APIGateway: POST /solutions (код решения)
 APIGateway->>JudgeService: Передать решение
-JudgeService->>JudgeDB: Сохранить решение (pending)
-JudgeService->>JudgeDB: Обновить результат проверки
 JudgeService-->>CourseService: Сообщить результат проверки
 CourseService->>CourseDB: Обновить статус решения
 Client->>APIGateway: GET /solutions/{id}
@@ -193,7 +185,7 @@ APIGateway-->>Client: Показать результат пользовател
 
 
 **Definition of Done (DoD) для MVP:**
-- Полностью реализованы сценарии: решение алгоритмической задачи и просмотр истории решений.
+- Полностью реализованы сценарии: решение алгоритмической задачи и просмотр теории
 - Реализована доступность (99.9%), масштабируемость, приемлемое время отклика (<=500мс), отказоустойчивость и консистентность, соответствующая нефункциональным требованиям.
 
 
